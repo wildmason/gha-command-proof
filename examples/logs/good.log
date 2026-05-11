@@ -1,0 +1,9 @@
+::group::build
+Compiling package
+::add-mask::s3cr3t-token
+Created token s3cr3t-token
+::warning file=src/main.rs,line=12,col=5,endColumn=9,title=lint::unused variable
+::stop-commands::stop-token-123456789
+::error::this text is logged but not processed
+::stop-token-123456789::
+::endgroup::

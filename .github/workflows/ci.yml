@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Format
+        run: cargo fmt --check
+      - name: Test
+        run: cargo test --locked
+      - name: Clippy
+        run: cargo clippy --locked --all-targets --all-features -- -D warnings
+      - name: Docs
+        run: cargo doc --locked --no-deps
+      - name: Package
+        run: cargo package --locked
+      - name: Smoke command stream
+        run: cargo run --locked -- log examples/logs/good.log --format json --output receipt.json
+      - name: Smoke environment file
+        run: cargo run --locked -- env-file --kind env examples/env/GITHUB_ENV --format json

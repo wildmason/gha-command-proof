@@ -1,0 +1,5 @@
+artifact=dist/app.tar.gz
+summary<<EOF
+line one
+line two
+EOF

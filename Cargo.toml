@@ -1,0 +1,26 @@
+[package]
+name = "gha-command-proof"
+version = "1.0.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+description = "Verifier for GitHub Actions workflow commands and environment files"
+repository = "https://github.com/wildmason/gha-command-proof"
+homepage = "https://github.com/wildmason/gha-command-proof"
+readme = "README.md"
+rust-version = "1.85"
+keywords = ["github-actions", "runner", "ci", "commands", "validation"]
+categories = ["command-line-utilities", "development-tools"]
+
+[dependencies]
+anyhow = "1.0"
+camino = { version = "1.2", features = ["serde1"] }
+chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
+clap = { version = "4.5", features = ["derive"] }
+dunce = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[dev-dependencies]
+assert_cmd = "2.0"
+predicates = "3.1"
+tempfile = "3.20"

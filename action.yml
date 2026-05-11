@@ -1,0 +1,127 @@
+name: "GHA Command Proof"
+description: "Validate GitHub Actions workflow commands and environment files."
+author: "Wildmason"
+branding:
+  icon: "shield"
+  color: "gray-dark"
+inputs:
+  mode:
+    description: "Validation mode: log, env-file, or step."
+    required: false
+    default: "step"
+  version:
+    description: "Crate version to install, or latest."
+    required: false
+    default: "latest"
+  log:
+    description: "Path to a stdout or stderr workflow command stream."
+    required: false
+  kind:
+    description: "Environment file kind for env-file mode: env, output, state, path, or step-summary."
+    required: false
+    default: "env"
+  file:
+    description: "Environment file path for env-file mode."
+    required: false
+  github-env:
+    description: "Path to a GITHUB_ENV file for step mode."
+    required: false
+  github-output:
+    description: "Path to a GITHUB_OUTPUT file for step mode."
+    required: false
+  github-state:
+    description: "Path to a GITHUB_STATE file for step mode."
+    required: false
+  github-path:
+    description: "Path to a GITHUB_PATH file for step mode."
+    required: false
+  github-step-summary:
+    description: "Path to a GITHUB_STEP_SUMMARY file for step mode."
+    required: false
+  format:
+    description: "Receipt format: text, json, or markdown."
+    required: false
+    default: "text"
+  output:
+    description: "Optional path for the receipt."
+    required: false
+  redacted-log-output:
+    description: "Optional path for a redacted copy of the log stream."
+    required: false
+  strict:
+    description: "Treat warnings as failures."
+    required: false
+    default: "false"
+runs:
+  using: "composite"
+  steps:
+    - name: "Install gha-command-proof"
+      shell: "bash"
+      run: |
+        if command -v gha-command-proof >/dev/null 2>&1; then
+          exit 0
+        fi
+
+        if [ "${{ inputs.version }}" = "latest" ]; then
+          cargo install gha-command-proof --locked
+        else
+          cargo install gha-command-proof --version "${{ inputs.version }}" --locked
+        fi
+    - name: "Run gha-command-proof"
+      shell: "bash"
+      run: |
+        set -euo pipefail
+
+        args=("${{ inputs.mode }}")
+
+        case "${{ inputs.mode }}" in
+          log)
+            if [ -n "${{ inputs.log }}" ]; then
+              args+=("${{ inputs.log }}")
+            fi
+            ;;
+          env-file)
+            if [ -z "${{ inputs.file }}" ]; then
+              echo "file input is required when mode=env-file" >&2
+              exit 2
+            fi
+            args+=("--kind" "${{ inputs.kind }}" "${{ inputs.file }}")
+            ;;
+          step)
+            if [ -n "${{ inputs.log }}" ]; then
+              args+=("--log" "${{ inputs.log }}")
+            fi
+            if [ -n "${{ inputs.github-env }}" ]; then
+              args+=("--github-env" "${{ inputs.github-env }}")
+            fi
+            if [ -n "${{ inputs.github-output }}" ]; then
+              args+=("--github-output" "${{ inputs.github-output }}")
+            fi
+            if [ -n "${{ inputs.github-state }}" ]; then
+              args+=("--github-state" "${{ inputs.github-state }}")
+            fi
+            if [ -n "${{ inputs.github-path }}" ]; then
+              args+=("--github-path" "${{ inputs.github-path }}")
+            fi
+            if [ -n "${{ inputs.github-step-summary }}" ]; then
+              args+=("--github-step-summary" "${{ inputs.github-step-summary }}")
+            fi
+            ;;
+          *)
+            echo "mode must be one of: log, env-file, step" >&2
+            exit 2
+            ;;
+        esac
+
+        args+=("--format" "${{ inputs.format }}")
+        if [ -n "${{ inputs.output }}" ]; then
+          args+=("--output" "${{ inputs.output }}")
+        fi
+        if [ -n "${{ inputs.redacted-log-output }}" ]; then
+          args+=("--redacted-log-output" "${{ inputs.redacted-log-output }}")
+        fi
+        if [ "${{ inputs.strict }}" = "true" ]; then
+          args+=("--strict")
+        fi
+
+        gha-command-proof "${args[@]}"

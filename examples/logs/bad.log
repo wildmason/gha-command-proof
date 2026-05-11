@@ -1,0 +1,5 @@
+::set-env name=NODE_OPTIONS::--inspect
+::set-output name=result::deprecated
+::warning line=2,endLine=1,col=3::invalid range
+::echo::maybe
+::group::left open

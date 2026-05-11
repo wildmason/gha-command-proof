@@ -1,0 +1,4 @@
+BUILD_MODE=release
+JSON_RESPONSE<<EOF
+{"ok":true}
+EOF

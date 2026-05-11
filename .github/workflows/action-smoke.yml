@@ -1,0 +1,19 @@
+name: Action Smoke
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  released-action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: wildmason/gha-command-proof@v1
+        with:
+          mode: log
+          log: examples/logs/good.log
+          format: json
+          output: gha-command-proof.json
