@@ -258,15 +258,14 @@ fn validate_command(
         }
         "stop-commands" => validate_stop_commands(command, source, checks, stopped),
         "group" => group_stack.push((command.line, masks.mask(&command.data))),
-        "endgroup" => {
-            if group_stack.pop().is_none() {
-                checks.push(Check::warn(
-                    "commands.group.unmatched_endgroup",
-                    "`endgroup` appeared before any open `group` command",
-                    location,
-                ));
-            }
+        "endgroup" if group_stack.pop().is_none() => {
+            checks.push(Check::warn(
+                "commands.group.unmatched_endgroup",
+                "`endgroup` appeared before any open `group` command",
+                location,
+            ));
         }
+        "endgroup" => {}
         "echo" => {
             let value = command.data.trim();
             if !value.eq_ignore_ascii_case("on") && !value.eq_ignore_ascii_case("off") {
@@ -283,24 +282,22 @@ fn validate_command(
                 validate_annotation(command, source, checks);
             }
         }
-        "set-output" | "save-state" | "set-env" => {
-            if missing_property(command, "name") {
-                checks.push(Check::fail(
-                    format!("commands.{name}.name"),
-                    format!("`{name}` requires a non-empty `name` property"),
-                    location,
-                ));
-            }
+        "set-output" | "save-state" | "set-env" if missing_property(command, "name") => {
+            checks.push(Check::fail(
+                format!("commands.{name}.name"),
+                format!("`{name}` requires a non-empty `name` property"),
+                location,
+            ));
         }
-        "add-matcher" => {
-            if command.data.trim().is_empty() {
-                checks.push(Check::warn(
-                    "commands.add_matcher.path",
-                    "`add-matcher` should include a problem matcher file path",
-                    location,
-                ));
-            }
+        "set-output" | "save-state" | "set-env" => {}
+        "add-matcher" if command.data.trim().is_empty() => {
+            checks.push(Check::warn(
+                "commands.add_matcher.path",
+                "`add-matcher` should include a problem matcher file path",
+                location,
+            ));
         }
+        "add-matcher" => {}
         "remove-matcher" => {
             let has_owner = !command
                 .properties
@@ -315,15 +312,14 @@ fn validate_command(
                 ));
             }
         }
-        "add-path" => {
-            if command.data.trim().is_empty() {
-                checks.push(Check::fail(
-                    "commands.add_path.path",
-                    "`add-path` requires a non-empty path",
-                    location,
-                ));
-            }
+        "add-path" if command.data.trim().is_empty() => {
+            checks.push(Check::fail(
+                "commands.add_path.path",
+                "`add-path` requires a non-empty path",
+                location,
+            ));
         }
+        "add-path" => {}
         _ => {}
     }
 }
